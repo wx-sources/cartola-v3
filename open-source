@@ -6,25 +6,32 @@ MakeWindow({
 
     Hub = {
 
-        Title = "Cartola Hub",
+        Title = "🎩 Cartola Hub v3 🎩",
 
         Animation = "Brookhaven RP"
 
+        Cor_Hub = Color3.fromRGB(255, 0, 0),  
+
+        Cor_Options = Color3.fromRGB(255, 0, 0),
+
+        Cor_Stroke = Color3.fromRGB(255, 0, 0),
+
+        Text_Font = Enum.Font.Gotham
     },
 
     
 
     Key = {
 
-        KeySystem = false,
+        KeySystem = true,
 
         Title = "Sistema de Chave",
 
-        Description = "Digite a chave correta para continuar.",
+        Description = "Key: cartola383",
 
-        KeyLink = "https://seusite.com/chave",
+        KeyLink = "Key: cartola383",
 
-        Keys = {"1234", "28922"},
+        Keys = {"cartola383"},
 
         Notifi = {
 
