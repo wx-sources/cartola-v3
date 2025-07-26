@@ -1,0 +1,2707 @@
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Vitoarieshub/KALI-LINUX-/refs/heads/main/loader.lua"))()
+
+
+
+MakeWindow({
+
+    Hub = {
+
+        Title = "Cartola Hub",
+
+        Animation = "Brookhaven RP"
+
+    },
+
+    
+
+    Key = {
+
+        KeySystem = false,
+
+        Title = "Sistema de Chave",
+
+        Description = "Digite a chave correta para continuar.",
+
+        KeyLink = "https://seusite.com/chave",
+
+        Keys = {"1234", "28922"},
+
+        Notifi = {
+
+            Notifications = true,
+
+            CorrectKey = "Chave correta! Iniciando script...",
+
+            Incorrectkey = "Chave incorreta, tente novamente.",
+
+            CopyKeyLink = "Link copiado!"
+
+        }
+
+    }
+
+})
+
+
+
+MinimizeButton({
+
+    Image = "rbxassetid://130563590371769",
+
+    Size = {50, 50},
+
+    Color = Color3.fromRGB(10, 10, 10),
+
+    Corner = true,
+
+    CornerRadius = UDim.new(0.5, 0),
+
+    Stroke = true,  -- Ativa a borda
+
+    StrokeColor = Color3.fromRGB(255, 0, 0)  -- Cor vermelha
+
+})
+
+
+
+local Main = MakeTab({Name = "Main"})
+
+local All = MakeTab({Name = "All"})
+
+local Misc = MakeTab({Name = "Misc"})
+
+
+
+
+
+
+
+local Players = game:GetService("Players")
+
+local RunService = game:GetService("RunService")
+
+local LocalPlayer = Players.LocalPlayer
+
+local Camera = workspace.CurrentCamera
+
+
+
+local playerName = ""
+
+local jogadorSelecionado = nil
+
+local observando = false
+
+local observarConnection = nil
+
+local teleportLoop = false
+
+local loopConnection = nil
+
+
+
+-- FLING Variáveis
+
+local flingConnection = nil
+
+local flingActive = false
+
+local orbitRadius = 3
+
+local orbitSpeed = 30
+
+local angle = 0
+
+local originalCFrame = nil -- Armazena a posição original do jogador antes do Fling
+
+
+
+-- Encontrar jogador
+
+local function encontrarJogador(nome)
+
+	local lowerName = nome:lower()
+
+	for _, player in pairs(Players:GetPlayers()) do
+
+		if player.Name:lower():sub(1, #lowerName) == lowerName then
+
+			return player
+
+		end
+
+	end
+
+	return nil
+
+end
+
+
+
+-- Caixa de texto para selecionar jogador
+
+AddTextBox(Main, {
+
+	Name = "Target",
+
+	Default = "",
+
+	Placeholder = "Nome do jogador aqui...",
+
+	Callback = function(text)
+
+		playerName = text
+
+		jogadorSelecionado = encontrarJogador(playerName)
+
+	end
+
+})
+
+
+
+-- Observar jogador
+
+local function pararObservar()
+
+	if observarConnection then
+
+		observarConnection:Disconnect()
+
+		observarConnection = nil
+
+	end
+
+	observando = false
+
+	if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+
+		Camera.CameraSubject = LocalPlayer.Character.Humanoid
+
+	end
+
+end
+
+
+
+local function iniciarObservar(jogador)
+
+	if not jogador or jogador == LocalPlayer then return end
+
+	observando = true
+
+	if not jogador.Character or not jogador.Character:FindFirstChild("Humanoid") then return end
+
+	Camera.CameraSubject = jogador.Character.Humanoid
+
+	observarConnection = jogador.CharacterAdded:Connect(function()
+
+		wait(1)
+
+		if observando and jogador.Character and jogador.Character:FindFirstChild("Humanoid") then
+
+			Camera.CameraSubject = jogador.Character.Humanoid
+
+		end
+
+	end)
+
+end
+
+
+
+AddToggle(Main, {
+
+	Name = "View",
+
+	Default = false,
+
+	Callback = function(Value)
+
+		jogadorSelecionado = encontrarJogador(playerName)
+
+		if Value then
+
+			if jogadorSelecionado then
+
+				iniciarObservar(jogadorSelecionado)
+
+			end
+
+		else
+
+			pararObservar()
+
+		end
+
+	end
+
+})
+
+
+
+-- Botão de ir até o jogador
+
+AddButton(Main, {
+
+	Name = "Goto",
+
+	Callback = function()
+
+		local jogador = encontrarJogador(playerName)
+
+		if jogador and jogador.Character and jogador.Character:FindFirstChild("HumanoidRootPart") then
+
+			local localChar = LocalPlayer.Character
+
+			if localChar and localChar:FindFirstChild("HumanoidRootPart") then
+
+				localChar.HumanoidRootPart.CFrame = jogador.Character.HumanoidRootPart.CFrame * CFrame.new(3, 0, 3)
+
+			end
+
+		end
+
+	end
+
+})
+
+
+
+-- Teleporte atrás do jogador
+
+local function teleportAtras()
+
+	if not jogadorSelecionado or jogadorSelecionado == LocalPlayer then return end
+
+	local targetChar = jogadorSelecionado.Character
+
+	local myChar = LocalPlayer.Character
+
+	if not targetChar or not myChar then return end
+
+
+
+	local targetHRP = targetChar:FindFirstChild("HumanoidRootPart")
+
+	local myHRP = myChar:FindFirstChild("HumanoidRootPart")
+
+	if not targetHRP or not myHRP then return end
+
+
+
+	local backPos = targetHRP.CFrame * CFrame.new(0, 0, 3)
+
+	myHRP.CFrame = backPos
+
+end
+
+
+
+AddToggle(Main, {
+
+	Name = "Teleport Loop",
+
+	Default = false,
+
+	Callback = function(Value)
+
+		teleportLoop = Value
+
+		if teleportLoop then
+
+			loopConnection = RunService.RenderStepped:Connect(function()
+
+				jogadorSelecionado = encontrarJogador(playerName)
+
+				teleportAtras()
+
+			end)
+
+		else
+
+			if loopConnection then
+
+				loopConnection:Disconnect()
+
+				loopConnection = nil
+
+			end
+
+		end
+
+	end
+
+})
+
+
+
+-- Fling setup
+
+local function setupFling()
+
+	if not (jogadorSelecionado and jogadorSelecionado.Character and LocalPlayer.Character) then return end
+
+
+
+	local myHRP = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+
+	local targetHRP = jogadorSelecionado.Character:FindFirstChild("HumanoidRootPart")
+
+	if not (myHRP and targetHRP) then return end
+
+
+
+	myHRP.Anchored = false
+
+	angle = 0
+
+
+
+	if flingConnection then flingConnection:Disconnect() end
+
+
+
+	flingConnection = RunService.Heartbeat:Connect(function(dt)
+
+		if not (jogadorSelecionado and jogadorSelecionado.Character and jogadorSelecionado.Character:FindFirstChild("HumanoidRootPart")) then return end
+
+		targetHRP = jogadorSelecionado.Character.HumanoidRootPart
+
+
+
+		local offset = Vector3.new(math.cos(angle), 0.5, math.sin(angle)) * orbitRadius
+
+		angle += orbitSpeed * dt
+
+
+
+		myHRP.CFrame = CFrame.new(targetHRP.Position + offset, targetHRP.Position)
+
+		myHRP.RotVelocity = Vector3.new(9999, 9999, 9999)
+
+	end)
+
+end
+
+
+
+-- Iniciar Fling
+
+local function startFling()
+
+	flingActive = true
+
+
+
+	local myHRP = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+
+	if myHRP then
+
+		originalCFrame = myHRP.CFrame -- Salvar posição antes do Fling
+
+	end
+
+
+
+	setupFling()
+
+
+
+	LocalPlayer.CharacterAdded:Connect(function()
+
+		if flingActive then wait(1) setupFling() end
+
+	end)
+
+
+
+	if jogadorSelecionado then
+
+		jogadorSelecionado.CharacterAdded:Connect(function()
+
+			if flingActive then wait(1) setupFling() end
+
+		end)
+
+	end
+
+end
+
+
+
+-- Parar Fling
+
+local function stopFling()
+
+	flingActive = false
+
+	if flingConnection then
+
+		flingConnection:Disconnect()
+
+		flingConnection = nil
+
+	end
+
+	local myHRP = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+
+	if myHRP then
+
+		myHRP.RotVelocity = Vector3.zero
+
+		myHRP.AssemblyLinearVelocity = Vector3.zero
+
+		if originalCFrame then
+
+			myHRP.CFrame = originalCFrame -- Voltar à posição original
+
+			originalCFrame = nil
+
+		end
+
+	end
+
+end
+
+
+
+-- Toggle de FLING
+
+AddToggle(Main, {
+
+	Name = "Fling",
+
+	Default = false,
+
+	Callback = function(Value)
+
+		jogadorSelecionado = encontrarJogador(playerName)
+
+		if Value then
+
+			startFling()
+
+		else
+
+			stopFling()
+
+		end
+
+	end
+
+})
+
+
+
+local section = AddSection(Main, {"Characters:"})
+
+
+
+
+
+local Players = game:GetService("Players")
+
+local LocalPlayer = Players.LocalPlayer
+
+
+
+-- WALKING SPEED
+
+local velocidadeAtivada = false
+
+local velocidadeValor = 25
+
+
+
+AddTextBox(Main, {
+
+    Name = "WalkSpeed",
+
+    Default = "25",
+
+    PlaceholderText = "Digite a velocidade (16-250)",
+
+    ClearText = true,
+
+    Callback = function(Value)
+
+        local num = tonumber(Value)
+
+        if num then
+
+            velocidadeValor = math.clamp(num, 16, 250)
+
+            if velocidadeAtivada then
+
+                local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+
+                local humanoid = character:FindFirstChildOfClass("Humanoid")
+
+                if humanoid then
+
+                    humanoid.WalkSpeed = velocidadeValor
+
+                end
+
+            end
+
+        end
+
+    end
+
+})
+
+
+
+AddToggle(Main, {
+
+    Name = "WalkSpeed",
+
+    Default = false,
+
+    Callback = function(Value)
+
+        velocidadeAtivada = Value
+
+        local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+
+        if humanoid then
+
+            humanoid.WalkSpeed = Value and velocidadeValor or 16
+
+        end
+
+    end
+
+})
+
+
+
+-- SUPER JUMP
+
+local jumpAtivado = false
+
+local jumpPowerSelecionado = 40
+
+local jumpPowerPadrao = 50
+
+
+
+local function aplicarJumpPower()
+
+    local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+
+    if humanoid then
+
+        humanoid.UseJumpPower = true
+
+        humanoid.JumpPower = jumpAtivado and jumpPowerSelecionado or jumpPowerPadrao
+
+    end
+
+end
+
+
+
+AddTextBox(Main, {
+
+    Name = "JumpPower",
+
+    Default = "40",
+
+    PlaceholderText = "Digite o Altura Do Pulo (10-900)",
+
+    ClearText = true,
+
+    Callback = function(Value)
+
+        local num = tonumber(Value)
+
+        if num then
+
+            jumpPowerSelecionado = math.clamp(num, 10, 900)
+
+            if jumpAtivado then
+
+                aplicarJumpPower()
+
+            end
+
+        end
+
+    end
+
+})
+
+
+
+AddToggle(Main, {
+
+    Name = "JumpPower",
+
+    Default = false,
+
+    Callback = function(Value)
+
+        jumpAtivado = Value
+
+        aplicarJumpPower()
+
+    end
+
+})
+
+
+
+-- GRAVITY
+
+local gravidadeAtivada = false
+
+local gravidadeSelecionada = 196.2
+
+local gravidadePadrao = 196.2
+
+
+
+AddTextBox(Main, {
+
+    Name = "Gravity",
+
+    Default = "196.2",
+
+    PlaceholderText = "Digite a gravidade (0-500)",
+
+    ClearText = true,
+
+    Callback = function(Value)
+
+        local num = tonumber(Value)
+
+        if num then
+
+            gravidadeSelecionada = math.clamp(num, 0, 500)
+
+            if gravidadeAtivada then
+
+                workspace.Gravity = gravidadeSelecionada
+
+            end
+
+        end
+
+    end
+
+})
+
+
+
+AddToggle(Main, {
+
+    Name = "Gravity",
+
+    Default = false,
+
+    Callback = function(Value)
+
+        gravidadeAtivada = Value
+
+        if gravidadeAtivada then
+
+            workspace.Gravity = gravidadeSelecionada
+
+        else
+
+            workspace.Gravity = gravidadePadrao
+
+        end
+
+    end
+
+})
+
+
+local Players = game:GetService("Players")
+
+
+
+local RunService = game:GetService("RunService")
+
+
+
+
+
+local player = Players.LocalPlayer
+
+local noclipEnabled = false
+
+
+
+-- Toggle para ativar/desativar o noclip
+
+AddToggle(Main, {
+
+    Name = "Noclip", 
+
+    Default = false,
+
+    Callback = function(Value)
+
+        noclipEnabled = Value
+
+        print("Noclip:", Value and "Ativado" or "Desativado")
+
+    end
+
+})
+
+
+
+-- Loop para desativar colisão 
+
+RunService.Stepped:Connect(function()
+
+    if noclipEnabled and player.Character then
+
+        for _, part in ipairs(player.Character:GetDescendants()) do
+
+            if part:IsA("BasePart") then
+
+                part.CanCollide = false
+
+            end
+
+        end
+
+    end
+
+end)
+
+
+
+
+-- Infinite Jump
+
+
+
+local jumpConnection
+
+
+
+local function toggleInfiniteJump(enable)
+
+    if enable then
+
+        if not jumpConnection then
+
+            jumpConnection = game:GetService("UserInputService").JumpRequest:Connect(function()
+
+                local player = game.Players.LocalPlayer
+
+                local character = player.Character or player.CharacterAdded:Wait()
+
+                local humanoid = character:FindFirstChildOfClass("Humanoid")
+
+                if humanoid then
+
+                    humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+
+                end
+
+            end)
+
+        end
+
+    else
+
+        if jumpConnection then
+
+            jumpConnection:Disconnect()
+
+            jumpConnection = nil
+
+        end
+
+    end
+
+end
+
+
+
+-- Toggle para ativar/desativar pulo infinito
+
+local Toggle = AddToggle(Main, {
+
+    Name = "Infinite jumps",
+
+    Default = false,
+
+    Callback = function(Value)
+
+        toggleInfiniteJump(Value)
+
+    end
+
+})
+
+
+
+
+
+
+local section = AddSection(All, {"Esp:"})
+
+
+
+-- ================= ESP ================= --
+
+
+
+
+
+local Players = game:GetService("Players")
+
+local LocalPlayer = Players.LocalPlayer
+
+
+
+-- Variáveis para ativar/desativar cada ESP
+
+local espNomeAtivado = false
+
+local espIdadeAtivado = false
+
+
+
+-- Tabelas para armazenar conexões separadas para cada ESP
+
+local conexoesNome = {}
+
+local conexoesIdade = {}
+
+
+
+-- Função que cria o ESP para um jogador, pode mostrar nome ou idade
+
+local function criarESP(player, mostrarIdade)
+
+	if player == LocalPlayer then return end
+
+	task.spawn(function()
+
+		while (mostrarIdade and espIdadeAtivado or not mostrarIdade and espNomeAtivado) and player and player.Character do
+
+			local head = player.Character:FindFirstChild("Head")
+
+			local humanoid = player.Character:FindFirstChild("Humanoid")
+
+
+
+			if head and humanoid and humanoid.Health > 0 then
+
+				-- Usamos nome diferente para os ESPs para não conflitar
+
+				local espName = mostrarIdade and "ESP_Idade" or "ESP_Nome"
+
+				local esp = head:FindFirstChild(espName)
+
+
+
+				if not esp then
+
+					esp = Instance.new("BillboardGui")
+
+					esp.Name = espName
+
+					esp.Adornee = head
+
+					esp.Size = UDim2.new(0, 100, 0, 25)
+
+					esp.StudsOffset = Vector3.new(0, mostrarIdade and 2.5 or 2, 0) -- Pequeno ajuste para não sobrepor
+
+					esp.AlwaysOnTop = true
+
+
+
+					local text = Instance.new("TextLabel")
+
+					text.Name = "Texto"
+
+					text.Size = UDim2.new(1, 0, 1, 0)
+
+					text.BackgroundTransparency = 1
+
+					text.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+					text.TextSize = 12
+
+					text.TextScaled = false
+
+					text.Font = Enum.Font.GothamBold
+
+					text.TextStrokeTransparency = 0.4
+
+					text.TextStrokeColor3 = Color3.new(0, 0, 0)
+
+					text.Parent = esp
+
+
+
+					esp.Parent = head
+
+
+
+					humanoid.Died:Connect(function()
+
+						if esp then esp:Destroy() end
+
+					end)
+
+				end
+
+
+
+				local texto = esp:FindFirstChild("Texto")
+
+				if texto then
+
+					texto.Text = mostrarIdade and (tostring(player.AccountAge) .. " Days") or player.Name
+
+				end
+
+			end
+
+
+
+			wait(0.3)
+
+		end
+
+
+
+		-- Quando desligar, destrói o ESP se existir
+
+		if player.Character then
+
+			local esp = player.Character.Head:FindFirstChild(mostrarIdade and "ESP_Idade" or "ESP_Nome")
+
+			if esp then esp:Destroy() end
+
+		end
+
+	end)
+
+end
+
+
+
+-- Monitorar jogador para ESP Nome
+
+local function monitorarPlayerNome(player)
+
+	if conexoesNome[player] then
+
+		conexoesNome[player]:Disconnect()
+
+		conexoesNome[player] = nil
+
+	end
+
+
+
+	conexoesNome[player] = player.CharacterAdded:Connect(function()
+
+		wait(1)
+
+		if espNomeAtivado then
+
+			criarESP(player, false)
+
+		end
+
+	end)
+
+
+
+	if player.Character then
+
+		criarESP(player, false)
+
+	end
+
+end
+
+
+
+-- Monitorar jogador para ESP Idade
+
+local function monitorarPlayerIdade(player)
+
+	if conexoesIdade[player] then
+
+		conexoesIdade[player]:Disconnect()
+
+		conexoesIdade[player] = nil
+
+	end
+
+
+
+	conexoesIdade[player] = player.CharacterAdded:Connect(function()
+
+		wait(1)
+
+		if espIdadeAtivado then
+
+			criarESP(player, true)
+
+		end
+
+	end)
+
+
+
+	if player.Character then
+
+		criarESP(player, true)
+
+	end
+
+end
+
+
+
+-- Toggle ESP Nome
+
+AddToggle(All, {
+
+	Name = "ESP Name",
+
+	Default = false,
+
+	Callback = function(Value)
+
+		espNomeAtivado = Value
+
+		if espNomeAtivado then
+
+			for _, player in ipairs(Players:GetPlayers()) do
+
+				if player ~= LocalPlayer then
+
+					monitorarPlayerNome(player)
+
+				end
+
+			end
+
+			conexoesNome["PlayerAdded"] = Players.PlayerAdded:Connect(function(player)
+
+				monitorarPlayerNome(player)
+
+			end)
+
+		else
+
+			for _, player in ipairs(Players:GetPlayers()) do
+
+				if player.Character and player.Character:FindFirstChild("Head") then
+
+					local esp = player.Character.Head:FindFirstChild("ESP_Nome")
+
+					if esp then esp:Destroy() end
+
+				end
+
+				if conexoesNome[player] then
+
+					conexoesNome[player]:Disconnect()
+
+					conexoesNome[player] = nil
+
+				end
+
+			end
+
+			if conexoesNome["PlayerAdded"] then
+
+				conexoesNome["PlayerAdded"]:Disconnect()
+
+				conexoesNome["PlayerAdded"] = nil
+
+			end
+
+		end
+
+	end
+
+})
+
+
+
+-- Toggle ESP Idade
+
+AddToggle(All, {
+
+	Name = "ESP Account Age",
+
+	Default = false,
+
+	Callback = function(Value)
+
+		espIdadeAtivado = Value
+
+		if espIdadeAtivado then
+
+			for _, player in ipairs(Players:GetPlayers()) do
+
+				if player ~= LocalPlayer then
+
+					monitorarPlayerIdade(player)
+
+				end
+
+			end
+
+			conexoesIdade["PlayerAdded"] = Players.PlayerAdded:Connect(function(player)
+
+				monitorarPlayerIdade(player)
+
+			end)
+
+		else
+
+			for _, player in ipairs(Players:GetPlayers()) do
+
+				if player.Character and player.Character:FindFirstChild("Head") then
+
+					local esp = player.Character.Head:FindFirstChild("ESP_Idade")
+
+					if esp then esp:Destroy() end
+
+				end
+
+				if conexoesIdade[player] then
+
+					conexoesIdade[player]:Disconnect()
+
+					conexoesIdade[player] = nil
+
+				end
+
+			end
+
+			if conexoesIdade["PlayerAdded"] then
+
+				conexoesIdade["PlayerAdded"]:Disconnect()
+
+				conexoesIdade["PlayerAdded"] = nil
+
+			end
+
+		end
+
+	end
+
+})
+
+
+
+-- Variável global para controlar o estado do ESP
+
+
+
+local espAtivado = false
+
+
+
+
+
+
+
+-- Serviços necessários
+
+
+
+local Players = game:GetService("Players")
+
+
+
+local RunService = game:GetService("RunService")
+
+
+
+local LocalPlayer = Players.LocalPlayer
+
+
+
+
+
+
+
+-- Função para aplicar o Highlight
+
+
+
+local function aplicarHighlight(player)
+
+
+
+    if player == LocalPlayer then return end
+
+
+
+    local character = player.Character
+
+
+
+    if character and not character:FindFirstChild("ESPHighlight") then
+
+
+
+        local highlight = Instance.new("Highlight")
+
+
+
+        highlight.Name = "ESPHighlight"
+
+
+
+        highlight.Adornee = character
+
+
+
+        highlight.FillColor = Color3.fromRGB(255, 255, 255) -- Cor branca
+
+
+
+        highlight.FillTransparency = 1 -- Centro totalmente transparente
+
+
+
+        highlight.OutlineColor = Color3.fromRGB(255, 255, 255) -- Cor branca
+
+
+
+        highlight.OutlineTransparency = 0 -- Contorno totalmente opaco
+
+
+
+        highlight.Parent = character
+
+
+
+    end
+
+
+
+end
+
+
+
+
+
+
+
+-- Função para remover o Highlight
+
+
+
+local function removerHighlight(player)
+
+
+
+    local character = player.Character
+
+
+
+    if character then
+
+
+
+        local highlight = character:FindFirstChild("ESPHighlight")
+
+
+
+        if highlight then
+
+
+
+            highlight:Destroy()
+
+
+
+        end
+
+
+
+    end
+
+
+
+end
+
+
+
+
+
+
+
+-- Loop de atualização contínua
+
+
+
+RunService.RenderStepped:Connect(function()
+
+
+
+    if espAtivado then
+
+
+
+        for _, player in ipairs(Players:GetPlayers()) do
+
+
+
+            aplicarHighlight(player)
+
+
+
+        end
+
+
+
+    else
+
+
+
+        for _, player in ipairs(Players:GetPlayers()) do
+
+
+
+            removerHighlight(player)
+
+
+
+        end
+
+
+
+    end
+
+
+
+end)
+
+
+
+
+
+
+
+-- Monitorar novos jogadores
+
+
+
+Players.PlayerAdded:Connect(function(player)
+
+
+
+    player.CharacterAdded:Connect(function()
+
+
+
+        if espAtivado then
+
+
+
+            aplicarHighlight(player)
+
+
+
+        end
+
+
+
+    end)
+
+
+
+end)
+
+
+
+
+
+
+
+-- Toggle para ativar/desativar o ESP
+
+
+
+AddToggle(All, {
+
+
+
+    Name = "ESP Box",
+
+
+
+    Default = false,
+
+
+
+    Callback = function(Value)
+
+
+
+        espAtivado = Value
+
+
+
+    end
+
+
+
+})
+
+
+
+
+
+
+
+local Players = game:GetService("Players")
+
+local RunService = game:GetService("RunService")
+
+local LocalPlayer = Players.LocalPlayer
+
+local Camera = workspace.CurrentCamera
+
+
+
+local espAtivado = false
+
+local espObjects = {}
+
+
+
+local cinza = Color3.fromRGB(128, 128, 128) -- cor cinza
+
+
+
+local function criarESP(player)
+
+    if player == LocalPlayer then return end
+
+    
+
+    -- Criar a linha
+
+    local line = Drawing.new("Line")
+
+    line.Color = cinza
+
+    line.Thickness = 2
+
+    line.Transparency = 1
+
+    line.Visible = true
+
+
+
+    -- Criar a label vazia para manter a posição, mas sem texto
+
+    local function criarLabel()
+
+        if not player.Character then return nil end
+
+        local rootPart = player.Character:FindFirstChild("HumanoidRootPart")
+
+        if not rootPart then return nil end
+
+        
+
+        local espGui = Instance.new("BillboardGui")
+
+        espGui.Name = "ESPLineLabel"
+
+        espGui.Adornee = rootPart
+
+        espGui.Size = UDim2.new(0, 100, 0, 25)
+
+        espGui.StudsOffset = Vector3.new(0, -3, 0) -- embaixo do pé
+
+        espGui.AlwaysOnTop = true
+
+        
+
+        -- Label vazio, sem texto
+
+        local textLabel = Instance.new("TextLabel")
+
+        textLabel.Size = UDim2.new(1, 0, 1, 0)
+
+        textLabel.BackgroundTransparency = 1
+
+        textLabel.Text = ""
+
+        textLabel.Parent = espGui
+
+        
+
+        espGui.Parent = player.Character
+
+        return espGui
+
+    end
+
+
+
+    local labelGui = criarLabel()
+
+    espObjects[player] = {line = line, label = labelGui}
+
+
+
+    local conn
+
+    conn = RunService.RenderStepped:Connect(function()
+
+        if not espAtivado or not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
+
+            line.Visible = false
+
+            if labelGui then labelGui:Destroy() end
+
+            conn:Disconnect()
+
+            espObjects[player] = nil
+
+            return
+
+        end
+
+
+
+        local rootPos = player.Character.HumanoidRootPart.Position
+
+        local rootPos2D = Camera:WorldToViewportPoint(rootPos)
+
+        local screenCenter = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
+
+
+
+        if rootPos2D.Z > 0 then
+
+            line.From = screenCenter
+
+            line.To = Vector2.new(rootPos2D.X, rootPos2D.Y)
+
+            line.Visible = true
+
+        else
+
+            line.Visible = false
+
+        end
+
+    end)
+
+end
+
+
+
+local function monitorarPlayers()
+
+    for _, player in pairs(Players:GetPlayers()) do
+
+        if player ~= LocalPlayer then
+
+            criarESP(player)
+
+        end
+
+    end
+
+end
+
+
+
+AddToggle(All, {
+
+    Name = "ESP Line",
+
+    Default = false,
+
+    Callback = function(value)
+
+        espAtivado = value
+
+        if espAtivado then
+
+            monitorarPlayers()
+
+            Players.PlayerAdded:Connect(function(player)
+
+                if espAtivado and player ~= LocalPlayer then
+
+                    criarESP(player)
+
+                end
+
+            end)
+
+        else
+
+            for player, data in pairs(espObjects) do
+
+                if data.line then
+
+                    data.line.Visible = false
+
+                    data.line:Remove()
+
+                end
+
+                if data.label then
+
+                    data.label:Destroy()
+
+                end
+
+            end
+
+            espObjects = {}
+
+        end
+
+    end
+
+})
+
+
+
+
+
+local section = AddSection(Misc, {"Anti:"})
+
+
+
+
+
+local TeleportService = game:GetService("TeleportService")
+
+local Players = game:GetService("Players")
+
+local RunService = game:GetService("RunService")
+
+
+
+local LocalPlayer = Players.LocalPlayer
+
+local placeId = game.PlaceId
+
+local autoRejoinAtivado = false
+
+
+
+-- Função que executa o rejoin
+
+local function autoRejoin()
+
+    if autoRejoinAtivado then
+
+        warn("[Auto Rejoin] Tentando reconectar ao jogo...")
+
+        TeleportService:Teleport(placeId, LocalPlayer)
+
+    end
+
+end
+
+
+
+-- Monitora tentativas de teleporte que falham
+
+LocalPlayer.OnTeleport:Connect(function(state)
+
+    if autoRejoinAtivado and state == Enum.TeleportState.Failed then
+
+        warn("[Auto Rejoin] Falha no teleporte. Reentrando...")
+
+        task.wait(2)
+
+        autoRejoin()
+
+    end
+
+end)
+
+
+
+-- Checa se o jogador foi desconectado
+
+local function monitorarConexao()
+
+    while autoRejoinAtivado and RunService:IsRunning() do
+
+        task.wait(5)
+
+        if not LocalPlayer or not LocalPlayer.Parent then
+
+            warn("[Auto Rejoin] Jogador desconectado. Reentrando...")
+
+            autoRejoin()
+
+            break
+
+        end
+
+    end
+
+end
+
+
+
+-- Toggle na interface
+
+AddToggle(Misc, {
+
+    Name = "Auto Rejoin",
+
+    Default = false,
+
+    Callback = function(Value)
+
+        autoRejoinAtivado = Value
+
+        if autoRejoinAtivado then
+
+            print("[Auto Rejoin] Ativado")
+
+            task.spawn(monitorarConexao)
+
+        else
+
+            print("[Auto Rejoin] Desativado")
+
+        end
+
+    end
+
+})
+
+
+
+
+
+
+
+local Players = game:GetService("Players")
+
+local LocalPlayer = Players.LocalPlayer
+
+
+
+local antiVoidConnection = nil
+
+local antiVoidPlatform = nil
+
+
+
+-- Função para criar a plataforma anti-void
+
+local function createAntiVoidPlatform()
+
+    if not antiVoidPlatform then
+
+        antiVoidPlatform = Instance.new("Part")
+
+        antiVoidPlatform.Size = Vector3.new(500, 1, 500)
+
+        antiVoidPlatform.Position = Vector3.new(0, -50, 0)
+
+        antiVoidPlatform.Anchored = true
+
+        antiVoidPlatform.Transparency = 1
+
+        antiVoidPlatform.CanCollide = true
+
+        antiVoidPlatform.Name = "AntiVoid"
+
+        antiVoidPlatform.Parent = workspace
+
+    end
+
+end
+
+
+
+-- Função para remover a plataforma
+
+local function removeAntiVoidPlatform()
+
+    if antiVoidPlatform then
+
+        antiVoidPlatform:Destroy()
+
+        antiVoidPlatform = nil
+
+    end
+
+end
+
+
+
+-- Função para monitorar o Void
+
+local function startAntiVoid()
+
+    antiVoidConnection = game:GetService("RunService").Heartbeat:Connect(function()
+
+        local character = LocalPlayer.Character
+
+        if character and character:FindFirstChild("HumanoidRootPart") then
+
+            local hrp = character.HumanoidRootPart
+
+            if hrp.Position.Y < -100 then
+
+                hrp.CFrame = CFrame.new(0, 50, 0)
+
+            end
+
+        end
+
+    end)
+
+end
+
+
+
+-- Função para parar o monitoramento
+
+local function stopAntiVoid()
+
+    if antiVoidConnection then
+
+        antiVoidConnection:Disconnect()
+
+        antiVoidConnection = nil
+
+    end
+
+end
+
+
+
+-- Botão Toggle
+
+AddToggle(Misc, {
+
+    Name = "Anti void",
+
+    Default = false,
+
+    Callback = function(Value)
+
+        if Value then
+
+            createAntiVoidPlatform()
+
+            startAntiVoid()
+
+        else
+
+            stopAntiVoid()
+
+            removeAntiVoidPlatform()
+
+        end
+
+    end
+
+})
+
+
+
+
+
+local Players = game:GetService("Players")
+
+local LocalPlayer = Players.LocalPlayer
+
+local RunService = game:GetService("RunService")
+
+
+
+local antiSeatEnabled = false
+
+local seatedConnection = nil
+
+local characterConnection = nil
+
+local seatWatcher = nil
+
+local ignoreSeats = {}
+
+
+
+-- Verifica se o assento faz parte de um veículo
+
+local function isSeatInVehicle(seat)
+
+	if seat:IsA("VehicleSeat") then
+
+		return true
+
+	end
+
+	local model = seat:FindFirstAncestorOfClass("Model")
+
+	if model then
+
+		for _, part in ipairs(model:GetDescendants()) do
+
+			if part:IsA("VehicleSeat") or part.Name:lower():match("wheel") then
+
+				return true
+
+			end
+
+		end
+
+	end
+
+	return false
+
+end
+
+
+
+-- Impede o personagem de sentar em assentos de veículos
+
+local function preventSitting(character)
+
+	local humanoid = character:WaitForChild("Humanoid", 5)
+
+	if not humanoid then return end
+
+
+
+	if seatedConnection then
+
+		seatedConnection:Disconnect()
+
+	end
+
+
+
+	seatedConnection = humanoid.Seated:Connect(function(isSeated, seat)
+
+		if isSeated and antiSeatEnabled and seat and isSeatInVehicle(seat) then
+
+			humanoid.Sit = false
+
+		end
+
+	end)
+
+
+
+	if humanoid.Sit and isSeatInVehicle(humanoid.SeatPart) then
+
+		humanoid.Sit = false
+
+	end
+
+end
+
+
+
+-- Desativa assentos de veículos
+
+local function disableVehicleSeats()
+
+	for _, obj in ipairs(workspace:GetDescendants()) do
+
+		if (obj:IsA("Seat") or obj:IsA("VehicleSeat")) and isSeatInVehicle(obj) then
+
+			if not ignoreSeats[obj] then
+
+				ignoreSeats[obj] = obj.CanTouch
+
+				obj.CanTouch = false
+
+			end
+
+		end
+
+	end
+
+end
+
+
+
+-- Restaura os assentos
+
+local function restoreSeats()
+
+	for seat, original in pairs(ignoreSeats) do
+
+		if seat and seat:IsDescendantOf(workspace) then
+
+			seat.CanTouch = original
+
+		end
+
+	end
+
+	ignoreSeats = {}
+
+end
+
+
+
+-- Observa novos assentos sendo criados
+
+local function watchNewSeats()
+
+	if seatWatcher then seatWatcher:Disconnect() end
+
+	seatWatcher = workspace.DescendantAdded:Connect(function(desc)
+
+		if antiSeatEnabled and (desc:IsA("Seat") or desc:IsA("VehicleSeat")) then
+
+			task.wait(0.1)
+
+			if isSeatInVehicle(desc) then
+
+				ignoreSeats[desc] = desc.CanTouch
+
+				desc.CanTouch = false
+
+			end
+
+		end
+
+	end)
+
+end
+
+
+
+-- Toggle Anti Vehicle
+
+AddToggle(Misc, {
+
+	Name = "Anti Vehicle",
+
+	Default = false,
+
+	Callback = function(Value)
+
+		antiSeatEnabled = Value
+
+
+
+		if Value then
+
+			if LocalPlayer.Character then
+
+				preventSitting(LocalPlayer.Character)
+
+			end
+
+
+
+			if characterConnection then
+
+				characterConnection:Disconnect()
+
+			end
+
+			characterConnection = LocalPlayer.CharacterAdded:Connect(preventSitting)
+
+
+
+			disableVehicleSeats()
+
+			watchNewSeats()
+
+		else
+
+			if seatedConnection then
+
+				seatedConnection:Disconnect()
+
+				seatedConnection = nil
+
+			end
+
+			if characterConnection then
+
+				characterConnection:Disconnect()
+
+				characterConnection = nil
+
+			end
+
+			if seatWatcher then
+
+				seatWatcher:Disconnect()
+
+				seatWatcher = nil
+
+			end
+
+
+
+			restoreSeats()
+
+		end
+
+	end
+
+})
+
+
+
+
+
+local Players = game:GetService("Players")
+
+local LocalPlayer = Players.LocalPlayer
+
+
+
+local antiSeatEnabled = false
+
+local seatConnections = {}
+
+
+
+-- Função para proteger contra sentar
+
+local function setupAntiSit(character)
+
+    local humanoid = character:WaitForChild("Humanoid", 5)
+
+    if not humanoid then return end
+
+
+
+    local connection = humanoid.Seated:Connect(function(isSeated)
+
+        if isSeated and antiSeatEnabled then
+
+            humanoid.Sit = false
+
+        end
+
+    end)
+
+
+
+    table.insert(seatConnections, connection)
+
+end
+
+
+
+-- Função para limpar conexões anteriores
+
+local function disconnectAllSeats()
+
+    for _, conn in ipairs(seatConnections) do
+
+        if conn.Connected then
+
+            conn:Disconnect()
+
+        end
+
+    end
+
+    table.clear(seatConnections)
+
+end
+
+
+
+-- Detectar novo personagem
+
+LocalPlayer.CharacterAdded:Connect(function(char)
+
+    if antiSeatEnabled then
+
+        setupAntiSit(char)
+
+    end
+
+end)
+
+
+
+-- Interface Toggle
+
+AddToggle(Misc, {
+
+    Name = "Anti Sit",
+
+    Default = false,
+
+    Callback = function(Value)
+
+        antiSeatEnabled = Value
+
+
+
+        if Value then
+
+            -- Aplicar imediatamente se já tiver personagem
+
+            if LocalPlayer.Character then
+
+                setupAntiSit(LocalPlayer.Character)
+
+            end
+
+        else
+
+            disconnectAllSeats()
+
+        end
+
+    end
+
+})
+
+
+
+
+
+local section = AddSection(Misc, {"Home:"})
+
+
+
+
+
+-- Referências iniciais
+
+
+
+local Players = game:GetService("Players")
+
+
+
+local LocalPlayer = Players.LocalPlayer
+
+local Workspace = game:GetService("Workspace")
+
+
+
+-- Função global para identificar barreiras de ban
+
+local function isBanWall(part)
+
+    return part:IsA("BasePart")
+
+        and part.Transparency == 1
+
+        and part.Color == Color3.fromRGB(255, 0, 0)
+
+        and part.CanCollide == true
+
+        and part.Size.Magnitude > 10 -- geralmente barreiras grandes
+
+end
+
+
+
+-- Guardar conexão para o Auto Unban
+
+local autoUnbanConnection = nil
+
+
+
+-- Toggle: Auto Unban
+
+AddToggle(Misc, {
+
+    Name = "Auto Unban",
+
+    Default = false,
+
+    Callback = function(Value)
+
+        if Value then
+
+            -- Remove barreiras existentes
+
+            for _, part in pairs(Workspace:GetDescendants()) do
+
+                if isBanWall(part) then
+
+                    part:Destroy()
+
+                end
+
+            end
+
+
+
+            -- Conecta monitoramento
+
+            autoUnbanConnection = Workspace.DescendantAdded:Connect(function(descendant)
+
+                if isBanWall(descendant) then
+
+                    task.wait(0.1)
+
+                    descendant:Destroy()
+
+                end
+
+            end)
+
+
+
+            print("Auto Unban")
+
+        else
+
+            -- Desconecta se o toggle for desativado
+
+            if autoUnbanConnection then
+
+                autoUnbanConnection:Disconnect()
+
+                autoUnbanConnection = nil
+
+                print("Auto Unban")
+
+            end
+
+        end
+
+    end
+
+})
+
+
+
+-- Botão: Unban Manual
+
+AddButton(Misc, {
+
+    Name = "Unban",
+
+    Callback = function()
+
+        local count = 0
+
+        for _, part in pairs(Workspace:GetDescendants()) do
+
+            if isBanWall(part) then
+
+                part:Destroy()
+
+                count += 1
+
+            end
+
+        end
+
+        print("Unban Manual:", count)
+
+    end
+
+})
+
+
+
+
+
+local Troll = MakeTab({Name = "Troll"})
+
+
+
+
+
+local Players = game:GetService("Players")
+
+local RunService = game:GetService("RunService")
+
+local Camera = workspace.CurrentCamera
+
+
+
+local LocalPlayer = Players.LocalPlayer
+
+local playerName = ""
+
+local jogadorSelecionado = nil
+
+
+
+local bangLoop = nil
+
+local faceLoop = nil
+
+local observarConnection = nil
+
+local observando = false
+
+
+
+-- Função para encontrar jogador
+
+local function encontrarJogador(nome)
+
+	local lowerName = nome:lower()
+
+	for _, player in pairs(Players:GetPlayers()) do
+
+		if player.Name:lower():sub(1, #lowerName) == lowerName then
+
+			return player
+
+		end
+
+	end
+
+	return nil
+
+end
+
+
+
+-- Caixa de texto para digitar o nome do jogador
+
+AddTextBox(Troll, {
+
+	Name = "Target",
+
+	Default = "",
+
+	Placeholder = "Nome do jogador aqui...",
+
+	Callback = function(text)
+
+		playerName = text
+
+		jogadorSelecionado = encontrarJogador(playerName)
+
+	end
+
+})
+
+
+
+-- Observar jogador
+
+local function pararObservar()
+
+	if observarConnection then
+
+		observarConnection:Disconnect()
+
+		observarConnection = nil
+
+	end
+
+	observando = false
+
+	if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+
+		Camera.CameraSubject = LocalPlayer.Character.Humanoid
+
+	end
+
+end
+
+
+
+local function iniciarObservar(jogador)
+
+	if not jogador or jogador == LocalPlayer then return end
+
+	observando = true
+
+	if not jogador.Character or not jogador.Character:FindFirstChild("Humanoid") then return end
+
+	Camera.CameraSubject = jogador.Character.Humanoid
+
+	observarConnection = jogador.CharacterAdded:Connect(function()
+
+		task.wait(1)
+
+		if observando and jogador.Character and jogador.Character:FindFirstChild("Humanoid") then
+
+			Camera.CameraSubject = jogador.Character.Humanoid
+
+		end
+
+	end)
+
+end
+
+
+
+AddToggle(Troll, {
+
+	Name = "View",
+
+	Default = false,
+
+	Callback = function(Value)
+
+		jogadorSelecionado = encontrarJogador(playerName)
+
+		if Value then
+
+			if jogadorSelecionado then
+
+				iniciarObservar(jogadorSelecionado)
+
+			end
+
+		else
+
+			pararObservar()
+
+		end
+
+	end
+
+})
+
+
+
+-- Bang v1
+
+AddToggle(Troll, {
+
+	Name = "Bang v1",
+
+	Default = false,
+
+	Callback = function(Value)
+
+		if bangLoop then
+
+			bangLoop:Disconnect()
+
+			bangLoop = nil
+
+		end
+
+
+
+		if Value and jogadorSelecionado then
+
+			bangLoop = RunService.RenderStepped:Connect(function()
+
+				local targetHRP = jogadorSelecionado.Character and jogadorSelecionado.Character:FindFirstChild("HumanoidRootPart")
+
+				local myHRP = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+
+
+
+				if targetHRP and myHRP then
+
+					local backPos = targetHRP.CFrame * CFrame.new(0, 0, 2.5)
+
+					local forwardPos = targetHRP.CFrame * CFrame.new(0, 0, 1.5)
+
+
+
+					local t = tick() * 3 % 1
+
+					local lerped = backPos:Lerp(forwardPos, math.abs(math.sin(t * math.pi)))
+
+
+
+					myHRP.CFrame = CFrame.new(lerped.Position, targetHRP.Position)
+
+				end
+
+			end)
+
+		end
+
+	end
+
+})
+
+
+
+-- Bang Face v1
+
+AddToggle(Troll, {
+
+	Name = "Bang Face v1",
+
+	Default = false,
+
+	Callback = function(Value)
+
+		if faceLoop then
+
+			faceLoop:Disconnect()
+
+			faceLoop = nil
+
+		end
+
+
+
+		if Value and jogadorSelecionado then
+
+			faceLoop = RunService.RenderStepped:Connect(function()
+
+				local targetHRP = jogadorSelecionado.Character and jogadorSelecionado.Character:FindFirstChild("HumanoidRootPart")
+
+				local myHRP = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+
+
+
+				if targetHRP and myHRP then
+
+					local baseOffset = CFrame.new(0, 1.2, -1.5)
+
+					local fwdOffset = CFrame.new(0, 1.2, -2.5)
+
+
+
+					local frontPos = targetHRP.CFrame * baseOffset
+
+					local forwardPos = targetHRP.CFrame * fwdOffset
+
+
+
+					local t = tick() * 3 % 1
+
+					local lerped = frontPos:Lerp(forwardPos, math.abs(math.sin(t * math.pi)))
+
+
+
+					myHRP.CFrame = CFrame.new(lerped.Position, targetHRP.Position + Vector3.new(0, 1.2, 0))
+
+				end
+
+			end)
+
+		end
+
+	end
+
+})
+
