@@ -9,14 +9,6 @@ MakeWindow({
         Title = "🎩 Cartola Hub v3 🎩",
 
         Animation = "Brookhaven RP"
-
-        Cor_Hub = Color3.fromRGB(255, 0, 0),  
-
-        Cor_Options = Color3.fromRGB(255, 0, 0),
-
-        Cor_Stroke = Color3.fromRGB(255, 0, 0),
-
-        Text_Font = Enum.Font.Gotham
     },
 
     
