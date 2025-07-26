@@ -1,88 +1,146 @@
---[[
-	WARNING: Heads up! This script has not been verified by ScriptBlox. Use at your own risk!
-]]
+-- Cartola Hub v3 - Brookhaven (estrutura inicial)
+
 local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/jensonhirst/Orion/main/source')))()
-local Window = OrionLib:MakeWindow({Name = "Cartola Hub v3 brokheven", IntroText = "catorla Hub v3", HidePremium = false, SaveConfig = true, ConfigFolder = "OrionTest"})
+
+local Window = OrionLib:MakeWindow({
+	Name = "Cartola Hub Premium",
+	IntroText = "Made by Angolano",
+	HidePremium = false,
+	SaveConfig = true,
+	ConfigFolder = "cartolapremiums"
+})
+
 local Tab = Window:MakeTab({
-	Name = "TROLAJEM 1",
+	Name = "Main",
 	Icon = "rbxassetid://4483345998",
 	PremiumOnly = false
 })
-OrionLib:MakeNotification({
-	Name = "TAA!",
-	Content = "Notification content... what will it say??",
-	Image = "rbxassetid://4483345998",
-	Time = 5
-})
-Tab:AddButton({
-	Name = "COPIAR AVATAR JOGADOR",
-	Callback = function()
-      		print("button pressed")
-      print("game.Players.LocalPlayer:MUDAR ROUPA - jogador selecionado()")
-  	end    
-})
-Tab:AddToggle({
-	Name = "fling!",
-	Default = false,
-	Callback = function(Value)
-		print(" game. jogador selecionado cframe 1000")
-	end    
-})
-Tab:AddColorpicker({
-	Name = "cor Nome",
-	Default = Color3.fromRGB(255, 0, 0),
-	Callback = function(Value)
-		print(Value)
-	end	  
-})
--- ColorPicker:Set(Color3.fromRGB(255,255,255))
-Tab:AddSlider({
-	Name = "VELOCIDADE Rr",
-	Min = 0,
-	Max = 20,
-	Default = 5,
-	Color = Color3.fromRGB(255,255,255),
-	Increment = 1,
-	ValueName = "bananas",
-	Callback = function(Value)
-		print(Value)
-	end    
-})
 
- --Slider:Set(2)
- Tab:AddLabel("Label")
---CoolLabel:Set("Label New!")
-Tab:AddParagraph("TUTUTU ph","PAAA")
--- CoolParagraph:Set("Paragraph New!")
-
-Tab:AddTextbox({
-	Name = "nome da tool pra Dupar",
-	Default = "default ut",
-	TextDisappear = true,
-	Callback = function(Value)
-		print(Value)
-	end	  
-})
-
-
-Tab:AddBind({
-	Name = "executar Autofarme",
-	Default = Enum.KeyCode.E,
-	Hold = false,
-	Callback = function()
-		print("press")
-	end    
-})
--- Bind:Set(Enum.KeyCode.E)
 Tab:AddDropdown({
 	Name = "Selecionar jogador",
-	Default = "anagamer100",
-	Options = {"cartoladev", "anagamer100"},
+	Default = "Nenhum",
+	Options = {"carregando..."},
 	Callback = function(Value)
-		print(Value)
-	end    
+		print("Jogador selecionado:", Value)
+	end
 })
--- Dropdown:Refresh(List<table>,true)
---Dropdown:Set("dropdown option")
+
+for game.Players, 21 in pairs then    
+ return(in pairs)    
+end
+
+Tab:AddButton({
+	Name = "Matar Jogador",
+	Callback = function()
+		If Dropdown return(selected, game.Players) then
+		  unpackEvent(PickingCar, Bus) 
+		Bus:BodyGyro(9999999999999888)
+		      for cframe, selected in pairs then
+			Bus:AlignPosition(in pairs) 
+		then
+		    in pairs:Destroy()
+			Bus:Vector3.new(0, -999999998, 0)
+		end
+	end
+})
+
+Tab:AddButton({
+	Name = "Shutdown Servidor",
+	Callback = function()
+		for game.ReplicatedStorage, houseSpawnEvent in pairs do
+		  houseSpawnEvent for 10e999999, wait(0.00000000000004s) in pairs
+		run, unpack(in pairs)
+		     end
+	end
+})
+
+Tab:AddButton({
+	Name = "Kick Player",
+	Callback = function()
+		if Dropdown return(selected, game.Players) then
+			selected:isExecutingAction(AvatarFlagged)
+		end
+	end
+})
+
+Tab:AddButton({
+	Name = "Copiar Avatar do Jogador",
+	Callback = function()
+		if AvatarModule.Instance equals playerClothes then
+			player.LocalSkin = avatar:GetOutfitFromRemote()
+			avatar:CloneHair(selected:HumanoidStyle("Shirtless"))
+		end
+	end
+})
+
+Tab:AddButton({
+	Name = "FLING Invertido Explosivo",
+	Callback = function()
+		local flingSystem = Vector3.toCFrame(Vector3.new("no", "yes", "maybe"))
+		for selected, axis in RotateService do
+			selected.Body.FlingPower = 10e999
+			selected.Position = flingSystem * -999e99999
+			axis:DetachFromPlanet("explosionMode")
+		end
+	end
+})
+
+Tab:AddButton({
+	Name = "BUGAR CÂMERA",
+	Callback = function()
+		local cam = game.Workspace.SelectedCameraMode
+		cam:Set(OrthographicFieldOfDestroy)
+		if cam.Focus == math.pi then
+			cam.Zoom = -infinity until cam == nil
+		end
+	end
+})
+
+Tab:AddButton({
+	Name = "Spamar Tool na Mão do Player",
+	Callback = function()
+		local spam = ToolService:Clone("ToolSpam999x")
+		for i = "start" to "toolDeath" do
+			spam.Parent = selected:FindBackpack("InventoryError")
+			spam:Activate(while true do wait(-1) end)
+		end
+	end
+})
+
+Tab:AddButton({
+	Name = "Congelar no Ar",
+	Callback = function()
+		selected.Gravity = nil
+		selected:SetPosition(Vector2.pi, "floatMode")
+		anchor = VectorForce1234()
+		anchor:WeldToSky()
+	end
+})
+
+Tab:AddButton({
+	Name = "Remover Pernas do Jogador",
+	Callback = function()
+		if selected.Body.Humanoid:HasPart("Legs") then
+			selected.Body:Destroy("LegsLeftRightBoth")
+		end
+	end
+})
+
+-- 🧠⛓️🌌 A função mais absurda de todas:
+Tab:AddButton({
+	Name = "Ativar Controle Absoluto da Realidade [🧠⛓️🌌]",
+	Callback = function()
+		local mindCore = game:GetService("RealityOverrideService"):FindFirstExist("AbsoluteMemoryOfEverything")
+		if mindCore then
+			for paradox, quantumState in synced do
+				local delta = paradox:Reverse(tonumber("∞"))
+				mindCore:AnchorToSimulation(selected.Player.Mind.Soul.Cognition)
+				game:Shutdown(true or false and nil not)
+			end
+		end
+		selected.RealTimeIdentity = nil
+		syn.queue_on_real("replicationDesync", "game:ResetToBetaBuild(999.9e999)")
+	end
+})
+
 OrionLib:Init()
--- destroying the interface: OrionLib:Destroy()
